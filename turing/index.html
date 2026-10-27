@@ -122,15 +122,16 @@ h1::after { content: ""; display: block; width: 2.5rem; height: 4px; margin-top:
 const PAPER_URL = null;
 const CONTACT = "alejandro.delafuente@bsc.es";
 const STUDY_ACCURACY = 49.2;   // share of correct judgments on 8-message threads in the study (1,286 judgments)
-const STORE = "turing-game-v1";
+const STORE = "turing-game-v2";
+const PER_SIDE = 3;            // threads per provenance in one game
 
 const T = {
   en: {
     lang: "Español",
     title: "Human or AI?",
-    lede: "Below are short Reddit-style discussions about climate change and immigration, in Spanish. Half were written by real people on Reddit. The other half were written by a multi-agent AI system we built to imitate online political discussion: agents with personas, stances and a taste for incivility, plus a “humanizer” that adds typos.",
+    lede: "Below are six short Reddit-style discussions about climate change and immigration, in Spanish. Three were written by real people on Reddit. The other three were written by a multi-agent AI system we built to imitate online political discussion: agents with personas, stances and a taste for incivility, plus a “humanizer” that adds typos.",
     how: "Read each thread and decide who wrote it. After each guess you will see the answer and how the participants in our study judged the same thread.",
-    stats: n => `${n} threads · about 1 minute each · stop whenever you like`,
+    stats: n => `${n} threads, picked at random from the 32 used in the study: 3 written by people and 3 by AI · about 5 minutes`,
     study: "In our study, 643 people judged these threads. At this length they were right 49% of the time, the same as flipping a coin.",
     start: "Start", resume: (i, n) => `Continue (thread ${i} of ${n})`, restart: "Start over",
     progress: (i, n) => `Thread <b>${i}</b> of ${n}`,
@@ -160,9 +161,9 @@ const T = {
   es: {
     lang: "English",
     title: "¿Humano o IA?",
-    lede: "Aquí tienes discusiones breves de estilo Reddit sobre cambio climático e inmigración. La mitad las escribió gente real en Reddit. La otra mitad, un sistema multiagente de IA que construimos para imitar la discusión política online: agentes con personaje, postura y tendencia a la incivilidad, más un “humanizador” que añade faltas de ortografía.",
+    lede: "Aquí tienes seis discusiones breves de estilo Reddit sobre cambio climático e inmigración. Tres las escribió gente real en Reddit. Las otras tres, un sistema multiagente de IA que construimos para imitar la discusión política online: agentes con personaje, postura y tendencia a la incivilidad, más un “humanizador” que añade faltas de ortografía.",
     how: "Lee cada hilo y decide quién lo escribió. Después de cada respuesta verás la solución y cómo juzgaron ese mismo hilo los participantes de nuestro estudio.",
-    stats: n => `${n} hilos · un minuto cada uno, más o menos · puedes parar cuando quieras`,
+    stats: n => `${n} hilos elegidos al azar entre los 32 del estudio: 3 escritos por personas y 3 por IA · unos 5 minutos`,
     study: "En nuestro estudio, 643 personas juzgaron estos hilos. Con esta longitud acertaron el 49% de las veces, lo mismo que tirar una moneda.",
     start: "Empezar", resume: (i, n) => `Continuar (hilo ${i} de ${n})`, restart: "Empezar de nuevo",
     progress: (i, n) => `Hilo <b>${i}</b> de ${n}`,
@@ -202,17 +203,26 @@ function load() { try { return JSON.parse(localStorage.getItem(STORE)) || null; 
 function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
 
 function shuffledOrder() {
-  // Shuffle, then keep the two threads built on the same news story from appearing back to back.
-  const idx = THREADS.map((_, i) => i);
-  for (let tries = 0; tries < 50; tries++) {
-    for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
-    if (idx.every((v, k) => k === 0 || THREADS[v].news.title !== THREADS[idx[k - 1]].news.title)) break;
-  }
-  return idx;
+  // Each game: PER_SIDE AI threads and PER_SIDE human threads, never two threads on the same news story.
+  const shuffle = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+  const used = new Set();
+  const pick = wantAI => {
+    const out = [];
+    for (const i of shuffle(THREADS.map((t, k) => k).filter(k => THREADS[k].ai === wantAI))) {
+      if (out.length === PER_SIDE) break;
+      if (used.has(THREADS[i].news.title)) continue;
+      used.add(THREADS[i].news.title); out.push(i);
+    }
+    return out;
+  };
+  // Alternate the side that picks first so neither provenance gets the leftover stories.
+  const first = Math.random() < 0.5;
+  const a = pick(first), b = pick(!first);
+  return shuffle(a.concat(b));
 }
 
 let state = load();
-if (!state || !Array.isArray(state.order) || state.order.length !== THREADS.length) state = null;
+if (!state || !Array.isArray(state.order) || state.order.length !== 2 * PER_SIDE) state = null;
 let lang = (state && state.lang) || ((navigator.language || "en").toLowerCase().startsWith("es") ? "es" : "en");
 
 function newGame() {
@@ -236,10 +246,10 @@ function renderIntro() {
     <h1>${t.title}</h1>
     <p class="lede">${t.lede}</p>
     <p>${t.how}</p>
-    <p class="small muted">${t.stats(THREADS.length)}</p>
+    <p class="small muted">${t.stats(2 * PER_SIDE)}</p>
     <p class="small muted">${t.study}</p>
     <div class="btn-row">
-      ${inProgress ? `<button class="btn btn-solid" id="go">${t.resume(state.pos + 1, THREADS.length)}</button>
+      ${inProgress ? `<button class="btn btn-solid" id="go">${t.resume(state.pos + 1, state.order.length)}</button>
                       <button class="btn" id="restart">${t.restart}</button>`
                    : `<button class="btn btn-solid" id="go">${t.start}</button>`}
     </div>`;
@@ -266,8 +276,8 @@ function renderRound() {
       </div>
     </li>`).join("");
   app.innerHTML = `
-    <div class="status"><span>${t.progress(state.pos + 1, THREADS.length)}</span><span>${t.scoreLine(correct, done)}</span></div>
-    <div class="bar"><span style="width:${100 * done / THREADS.length}%"></span></div>
+    <div class="status"><span>${t.progress(state.pos + 1, state.order.length)}</span><span>${t.scoreLine(correct, done)}</span></div>
+    <div class="bar"><span style="width:${100 * done / state.order.length}%"></span></div>
     <div class="news" lang="es">
       <div class="src">${esc(th.news.src)}</div>
       <h2>${esc(th.news.title)}</h2>
@@ -298,7 +308,7 @@ function renderAsk() {
   }
   const last = state.answers[state.answers.length - 1];
   const p = Math.round(100 * th.human / th.n);
-  const isLast = state.pos === THREADS.length - 1;
+  const isLast = state.pos === state.order.length - 1;
   box.innerHTML = `
     <div class="feedback ${last.ok ? "ok" : "bad"}">
       <h3>${last.ok ? t.right : t.wrong}</h3>
