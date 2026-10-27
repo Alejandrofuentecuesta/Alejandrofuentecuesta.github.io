@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Human or AI? A collective Turing test</title>
+<meta name="description" content="Read online political discussions and guess whether people or a multi-agent AI system wrote them. Built from the stimuli of a collective Turing test with 643 participants.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #ffffff; --text: #1d1f21; --muted: #62676d; --rule: #e6e3dd;
+  --teal: #1d5a73; --teal-dark: #123f52; --teal-soft: #eaf1f4;
+  --ochre: #d4a94e; --ochre-soft: #faf3e3;
+  --ok: #2f6b3a; --ok-soft: #e8f2e9; --bad: #8c3b2b; --bad-soft: #f6e9e6;
+  --serif: "Source Serif 4", Georgia, serif;
+  --sans: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.55 var(--serif); border-top: 4px solid var(--ochre); }
+a { color: var(--teal); text-underline-offset: 3px; }
+button { font: inherit; cursor: pointer; }
+
+.top { border-bottom: 1px solid var(--rule); font-family: var(--sans); font-size: 0.95rem; }
+.top-inner { max-width: 46rem; margin: 0 auto; padding: 0.7rem 1rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.top a { color: var(--text); text-decoration: none; }
+.top a:hover { color: var(--teal); }
+.lang { border: 1px solid var(--rule); background: #fff; border-radius: 999px; padding: 0.15rem 0.7rem; font-size: 0.85rem; color: var(--teal-dark); }
+
+main { max-width: 46rem; margin: 0 auto; padding: 2rem 1rem 4rem; }
+h1 { font-size: 2.3rem; line-height: 1.15; color: var(--teal-dark); margin: 0 0 0.4rem; }
+h1::after { content: ""; display: block; width: 2.5rem; height: 4px; margin-top: 0.5rem; background: var(--ochre); border-radius: 2px; }
+.lede { font-size: 1.1rem; }
+.muted { color: var(--muted); }
+.small { font-family: var(--sans); font-size: 0.9rem; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.6rem 1.3rem; border-radius: 999px;
+  border: 1px solid var(--teal); background: #fff; color: var(--teal-dark); font-family: var(--sans); font-weight: 600; text-decoration: none; }
+.btn:hover { background: var(--teal-soft); }
+.btn-solid { background: var(--teal); color: #fff; }
+.btn-solid:hover { background: var(--teal-dark); }
+.btn-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.4rem; }
+
+/* progress */
+.status { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--sans); font-size: 0.92rem; color: var(--muted); margin-bottom: 0.5rem; }
+.status b { color: var(--teal-dark); }
+.bar { height: 6px; background: var(--teal-soft); border-radius: 3px; overflow: hidden; margin-bottom: 1.6rem; }
+.bar span { display: block; height: 100%; background: var(--teal); transition: width 0.3s; }
+
+/* news card */
+.news { background: var(--ochre-soft); border-left: 4px solid var(--ochre); padding: 1rem 1.2rem; border-radius: 0 6px 6px 0; margin-bottom: 1.4rem; }
+.news .src { font-family: var(--sans); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.02em; color: #8a5f10; }
+.news h2 { font-size: 1.25rem; line-height: 1.3; margin: 0.2rem 0 0.4rem; }
+.news p { margin: 0; font-size: 0.95rem; color: #3d3f42; }
+
+/* thread */
+.thread { list-style: none; padding: 0; margin: 0; }
+.msg { display: grid; grid-template-columns: 2.2rem 1fr; gap: 0.7rem; padding: 0.85rem 0; border-bottom: 1px solid var(--rule); }
+.msg:last-child { border-bottom: 0; }
+.av { width: 2.2rem; height: 2.2rem; border-radius: 50%; display: grid; place-items: center; font-family: var(--sans); font-weight: 600; color: #fff; font-size: 0.95rem; }
+.who { font-family: var(--sans); font-size: 0.9rem; }
+.who b { color: var(--text); }
+.who .re { color: var(--muted); }
+.txt { margin: 0.15rem 0 0.25rem; overflow-wrap: anywhere; }
+.likes { font-family: var(--sans); font-size: 0.8rem; color: var(--muted); display: inline-flex; align-items: center; gap: 0.25rem; }
+.likes svg { width: 0.85rem; height: 0.85rem; fill: none; stroke: currentColor; stroke-width: 2; }
+
+/* answer */
+.ask { position: sticky; bottom: 0; background: rgba(255,255,255,0.97); border-top: 1px solid var(--rule); padding: 1rem 0 1.1rem; margin-top: 1rem; }
+.ask p { margin: 0 0 0.6rem; font-family: var(--sans); font-weight: 600; text-align: center; }
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+.choice { padding: 0.85rem; border-radius: 8px; border: 2px solid var(--teal); background: #fff; color: var(--teal-dark); font-family: var(--sans); font-weight: 600; font-size: 1.05rem; }
+.choice:hover { background: var(--teal-soft); }
+.feedback { border-radius: 8px; padding: 1rem 1.2rem; }
+.feedback.ok { background: var(--ok-soft); border-left: 4px solid var(--ok); }
+.feedback.bad { background: var(--bad-soft); border-left: 4px solid var(--bad); }
+.feedback h3 { margin: 0 0 0.3rem; font-family: var(--sans); font-size: 1.15rem; }
+.feedback.ok h3 { color: var(--ok); }
+.feedback.bad h3 { color: var(--bad); }
+.feedback p { margin: 0 0 0.3rem; font-weight: 400; text-align: left; font-family: var(--serif); }
+.crowd { margin: 0.6rem 0 0.2rem; }
+.crowd .track { height: 10px; border-radius: 5px; background: #e9d9d4; overflow: hidden; display: flex; }
+.crowd .track span { background: var(--teal); }
+.crowd .legend { display: flex; justify-content: space-between; font-family: var(--sans); font-size: 0.82rem; color: var(--muted); margin-top: 0.2rem; }
+.next-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-top: 0.8rem; flex-wrap: wrap; }
+.linkish { background: none; border: 0; padding: 0; color: var(--muted); text-decoration: underline; font-family: var(--sans); font-size: 0.9rem; }
+
+/* results */
+.score { font-size: 3.2rem; font-weight: 600; color: var(--teal-dark); line-height: 1; margin: 0.6rem 0 0.2rem; }
+.compare { margin: 1.4rem 0; }
+.compare .row { display: grid; grid-template-columns: 8.5rem 1fr 3.2rem; gap: 0.7rem; align-items: center; margin-bottom: 0.5rem; font-family: var(--sans); font-size: 0.95rem; }
+.compare .track { height: 14px; background: var(--teal-soft); border-radius: 7px; overflow: hidden; }
+.compare .track span { display: block; height: 100%; border-radius: 7px; }
+.paper { margin-top: 2rem; padding: 1.2rem 1.3rem; background: var(--teal-soft); border-top: 3px solid var(--teal); border-radius: 0 0 6px 6px; }
+.paper h3 { margin: 0 0 0.4rem; font-size: 1.15rem; }
+.paper p { margin: 0 0 0.6rem; }
+
+@media (max-width: 560px) {
+  h1 { font-size: 1.9rem; }
+  .compare .row { grid-template-columns: 6.5rem 1fr 2.8rem; }
+}
+</style>
+</head>
+<body>
+<div class="top"><div class="top-inner">
+  <a href="../">← Alejandro de la Fuente-Cuesta</a>
+  <button class="lang" id="lang" type="button"></button>
+</div></div>
+<main id="app"></main>
+
+<script src="threads.js"></script>
+<script>
+// Whether to link a public version of the paper; null shows a request-by-email link instead.
+const PAPER_URL = null;
+const CONTACT = "alejandro.delafuente@bsc.es";
+const STUDY_ACCURACY = 49.2;   // share of correct judgments on 8-message threads in the study (1,286 judgments)
+const STORE = "turing-game-v1";
+
+const T = {
+  en: {
+    lang: "Español",
+    title: "Human or AI?",
+    lede: "Below are short Reddit-style discussions about climate change and immigration, in Spanish. Half were written by real people on Reddit. The other half were written by a multi-agent AI system we built to imitate online political discussion: agents with personas, stances and a taste for incivility, plus a “humanizer” that adds typos.",
+    how: "Read each thread and decide who wrote it. After each guess you will see the answer and how the participants in our study judged the same thread.",
+    stats: n => `${n} threads · about 1 minute each · stop whenever you like`,
+    study: "In our study, 643 people judged these threads. At this length they were right 49% of the time, the same as flipping a coin.",
+    start: "Start", resume: (i, n) => `Continue (thread ${i} of ${n})`, restart: "Start over",
+    progress: (i, n) => `Thread <b>${i}</b> of ${n}`,
+    scoreLine: (c, a) => `<b>${c}</b> correct out of ${a}`,
+    replying: "replying to",
+    question: "Who wrote this discussion?",
+    human: "People", ai: "AI",
+    right: "Correct", wrong: "Not quite",
+    wasAI: "This thread was generated by our AI system.",
+    wasHuman: "This thread was written by real people on Reddit.",
+    crowd: (p, n) => `${p}% of the ${n} study participants who saw it thought people wrote it.`,
+    sideH: "said people", sideA: "said AI",
+    next: "Next thread", finish: "See my results", stop: "Finish here",
+    doneTitle: "Your result",
+    youGot: (c, a) => `You got ${c} of ${a} right.`,
+    you: "You", studyLbl: "Study participants", chance: "Coin flip",
+    verdict: p => p >= 65 ? "That is well above what our participants managed. You may have a better eye for machine-written text than most." :
+                  p >= 55 ? "A bit better than our participants and than chance, but the threads clearly fooled you more than once." :
+                  p >= 45 ? "About the same as our participants and as chance. That is the point of the study: at this length, readers cannot tell them apart." :
+                            "Below chance, like many of our participants. People tend to read insults, slang and typos as proof of a human, which are exactly the cues the system was built to produce.",
+    paperTitle: "The paper behind the game",
+    paperName: "The Collective Turing Test Revisited: Can Humanized Multi-Agent Systems Simulate Online Political Discussion?",
+    paperText: "Two online panels (643 people, ages 18–75) judged artificial and authentic threads as human at almost identical rates (65% vs 66%). No respondent characteristic predicted who could tell them apart.",
+    readPaper: "Read the paper", askPaper: "Ask me for a copy",
+    again: "Play again", back: "Back to my website",
+  },
+  es: {
+    lang: "English",
+    title: "¿Humano o IA?",
+    lede: "Aquí tienes discusiones breves de estilo Reddit sobre cambio climático e inmigración. La mitad las escribió gente real en Reddit. La otra mitad, un sistema multiagente de IA que construimos para imitar la discusión política online: agentes con personaje, postura y tendencia a la incivilidad, más un “humanizador” que añade faltas de ortografía.",
+    how: "Lee cada hilo y decide quién lo escribió. Después de cada respuesta verás la solución y cómo juzgaron ese mismo hilo los participantes de nuestro estudio.",
+    stats: n => `${n} hilos · un minuto cada uno, más o menos · puedes parar cuando quieras`,
+    study: "En nuestro estudio, 643 personas juzgaron estos hilos. Con esta longitud acertaron el 49% de las veces, lo mismo que tirar una moneda.",
+    start: "Empezar", resume: (i, n) => `Continuar (hilo ${i} de ${n})`, restart: "Empezar de nuevo",
+    progress: (i, n) => `Hilo <b>${i}</b> de ${n}`,
+    scoreLine: (c, a) => `<b>${c}</b> aciertos de ${a}`,
+    replying: "respondiendo a",
+    question: "¿Quién escribió esta discusión?",
+    human: "Personas", ai: "IA",
+    right: "¡Has acertado!", wrong: "Has fallado",
+    wasAI: "Este hilo lo generó nuestro sistema de IA.",
+    wasHuman: "Este hilo lo escribieron personas reales en Reddit.",
+    crowd: (p, n) => `El ${p}% de los ${n} participantes del estudio que lo vieron pensó que lo habían escrito personas.`,
+    sideH: "dijeron personas", sideA: "dijeron IA",
+    next: "Siguiente hilo", finish: "Ver mi resultado", stop: "Terminar aquí",
+    doneTitle: "Tu resultado",
+    youGot: (c, a) => `Has acertado ${c} de ${a}.`,
+    you: "Tú", studyLbl: "Participantes del estudio", chance: "Lanzar una moneda",
+    verdict: p => p >= 65 ? "Muy por encima de lo que consiguieron nuestros participantes. Puede que tengas más ojo que la mayoría para el texto escrito por máquinas." :
+                  p >= 55 ? "Algo mejor que nuestros participantes y que el azar, pero los hilos te engañaron más de una vez." :
+                  p >= 45 ? "Más o menos como nuestros participantes y como el azar. Esa es la idea del estudio: con esta longitud no se distinguen." :
+                            "Por debajo del azar, como muchos de nuestros participantes. Solemos tomar los insultos, la jerga y las faltas como prueba de que hay un humano detrás, y son justo las señales que el sistema estaba diseñado para producir.",
+    paperTitle: "El paper detrás del juego",
+    paperName: "The Collective Turing Test Revisited: Can Humanized Multi-Agent Systems Simulate Online Political Discussion?",
+    paperText: "Dos paneles online (643 personas de 18 a 75 años) juzgaron como humanos los hilos artificiales y los auténticos en proporciones casi idénticas (65% frente a 66%). Ninguna característica de los participantes predijo quién sabía distinguirlos.",
+    readPaper: "Leer el paper", askPaper: "Pídeme una copia",
+    again: "Jugar otra vez", back: "Volver a mi web",
+  },
+};
+
+const app = document.getElementById("app");
+const langBtn = document.getElementById("lang");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const AV = ["#1d5a73", "#b0802a", "#8c3b2b", "#3f6f5a", "#5b5f8a", "#7a5a3a"];
+const avColor = name => AV[[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % AV.length];
+const heart = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>';
+
+function load() { try { return JSON.parse(localStorage.getItem(STORE)) || null; } catch (e) { return null; } }
+function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
+
+function shuffledOrder() {
+  // Shuffle, then keep the two threads built on the same news story from appearing back to back.
+  const idx = THREADS.map((_, i) => i);
+  for (let tries = 0; tries < 50; tries++) {
+    for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+    if (idx.every((v, k) => k === 0 || THREADS[v].news.title !== THREADS[idx[k - 1]].news.title)) break;
+  }
+  return idx;
+}
+
+let state = load();
+if (!state || !Array.isArray(state.order) || state.order.length !== THREADS.length) state = null;
+let lang = (state && state.lang) || ((navigator.language || "en").toLowerCase().startsWith("es") ? "es" : "en");
+
+function newGame() {
+  state = { order: shuffledOrder(), pos: 0, answers: [], answered: false, lang };
+  save();
+}
+
+function render() {
+  const t = T[lang];
+  document.documentElement.lang = lang;
+  langBtn.textContent = t.lang;
+  if (!state || state.view === "intro" || (!state.started)) return renderIntro();
+  if (state.view === "done") return renderDone();
+  renderRound();
+}
+
+function renderIntro() {
+  const t = T[lang];
+  const inProgress = state && state.started && state.answers.length > 0 && state.view !== "done";
+  app.innerHTML = `
+    <h1>${t.title}</h1>
+    <p class="lede">${t.lede}</p>
+    <p>${t.how}</p>
+    <p class="small muted">${t.stats(THREADS.length)}</p>
+    <p class="small muted">${t.study}</p>
+    <div class="btn-row">
+      ${inProgress ? `<button class="btn btn-solid" id="go">${t.resume(state.pos + 1, THREADS.length)}</button>
+                      <button class="btn" id="restart">${t.restart}</button>`
+                   : `<button class="btn btn-solid" id="go">${t.start}</button>`}
+    </div>`;
+  document.getElementById("go").onclick = () => {
+    if (!inProgress) newGame();
+    state.started = true; state.view = "round"; save(); render(); window.scrollTo(0, 0);
+  };
+  const r = document.getElementById("restart");
+  if (r) r.onclick = () => { newGame(); state.started = true; state.view = "round"; save(); render(); };
+}
+
+function renderRound() {
+  const t = T[lang];
+  const th = THREADS[state.order[state.pos]];
+  const correct = state.answers.filter(a => a.ok).length;
+  const done = state.answers.length;
+  const msgs = th.msgs.map(m => `
+    <li class="msg">
+      <div class="av" style="background:${avColor(m.s)}">${esc(m.s[0])}</div>
+      <div>
+        <div class="who"><b>${esc(m.s)}</b>${m.r ? ` <span class="re">· ${t.replying} ${esc(m.r)}</span>` : ""}</div>
+        <p class="txt">${esc(m.t)}</p>
+        <span class="likes">${heart}${m.l}</span>
+      </div>
+    </li>`).join("");
+  app.innerHTML = `
+    <div class="status"><span>${t.progress(state.pos + 1, THREADS.length)}</span><span>${t.scoreLine(correct, done)}</span></div>
+    <div class="bar"><span style="width:${100 * done / THREADS.length}%"></span></div>
+    <div class="news" lang="es">
+      <div class="src">${esc(th.news.src)}</div>
+      <h2>${esc(th.news.title)}</h2>
+      <p>${esc(th.news.lead)}</p>
+    </div>
+    <ol class="thread" lang="es">${msgs}</ol>
+    <div class="ask" id="ask"></div>`;
+  renderAsk();
+}
+
+function renderAsk() {
+  const t = T[lang];
+  const box = document.getElementById("ask");
+  const th = THREADS[state.order[state.pos]];
+  if (!state.answered) {
+    box.innerHTML = `<p>${t.question}</p>
+      <div class="choices">
+        <button class="choice" data-ai="0">${t.human}</button>
+        <button class="choice" data-ai="1">${t.ai}</button>
+      </div>`;
+    box.querySelectorAll(".choice").forEach(b => b.onclick = () => {
+      const saidAI = b.dataset.ai === "1";
+      state.answers.push({ i: state.order[state.pos], ok: saidAI === th.ai });
+      state.answered = true; save(); render();
+      document.getElementById("ask").scrollIntoView({ block: "nearest" });
+    });
+    return;
+  }
+  const last = state.answers[state.answers.length - 1];
+  const p = Math.round(100 * th.human / th.n);
+  const isLast = state.pos === THREADS.length - 1;
+  box.innerHTML = `
+    <div class="feedback ${last.ok ? "ok" : "bad"}">
+      <h3>${last.ok ? t.right : t.wrong}</h3>
+      <p>${th.ai ? t.wasAI : t.wasHuman}</p>
+      <div class="crowd">
+        <p class="small">${t.crowd(p, th.n)}</p>
+        <div class="track"><span style="width:${p}%"></span></div>
+        <div class="legend"><span>${p}% ${t.sideH}</span><span>${100 - p}% ${t.sideA}</span></div>
+      </div>
+      <div class="next-row">
+        <button class="btn btn-solid" id="next">${isLast ? t.finish : t.next}</button>
+        ${isLast ? "" : `<button class="linkish" id="stop">${t.stop}</button>`}
+      </div>
+    </div>`;
+  document.getElementById("next").onclick = () => {
+    if (isLast) { state.view = "done"; } else { state.pos += 1; state.answered = false; }
+    save(); render(); window.scrollTo(0, 0);
+  };
+  const s = document.getElementById("stop");
+  if (s) s.onclick = () => { state.view = "done"; save(); render(); window.scrollTo(0, 0); };
+}
+
+function renderDone() {
+  const t = T[lang];
+  const a = state.answers.length;
+  const c = state.answers.filter(x => x.ok).length;
+  const pct = a ? Math.round(100 * c / a) : 0;
+  const row = (label, v, color) => `<div class="row"><span>${label}</span><div class="track"><span style="width:${v}%;background:${color}"></span></div><b>${v}%</b></div>`;
+  const paperLink = PAPER_URL
+    ? `<a class="btn btn-solid" href="${PAPER_URL}">${t.readPaper}</a>`
+    : `<a class="btn btn-solid" href="mailto:${CONTACT}?subject=${encodeURIComponent("Collective Turing Test paper")}">${t.askPaper}</a>`;
+  app.innerHTML = `
+    <h1>${t.doneTitle}</h1>
+    <div class="score">${pct}%</div>
+    <p class="lede">${t.youGot(c, a)}</p>
+    <div class="compare">
+      ${row(t.you, pct, "#1d5a73")}
+      ${row(t.studyLbl, Math.round(STUDY_ACCURACY), "#d4a94e")}
+      ${row(t.chance, 50, "#b8bcc1")}
+    </div>
+    <p>${t.verdict(pct)}</p>
+    <div class="paper">
+      <h3>${t.paperTitle}</h3>
+      <p><i>${t.paperName}</i></p>
+      <p>${t.paperText}</p>
+      <div class="btn-row" style="margin-top:0.8rem">${paperLink}<a class="btn" href="../">${t.back}</a></div>
+    </div>
+    <div class="btn-row"><button class="btn" id="again">${t.again}</button></div>`;
+  document.getElementById("again").onclick = () => { newGame(); state.started = true; state.view = "round"; save(); render(); window.scrollTo(0, 0); };
+}
+
+langBtn.onclick = () => { lang = lang === "en" ? "es" : "en"; if (state) { state.lang = lang; save(); } render(); };
+render();
+</script>
+</body>
+</html>
