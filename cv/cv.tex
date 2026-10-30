@@ -5,7 +5,23 @@
 \moderncvcolor{black}
 \usepackage[scale=0.87]{geometry}
 \AtBeginDocument{\hypersetup{colorlinks=true,urlcolor=blue,linkcolor=blue}}
-\setlength{\hintscolumnwidth}{2.6cm}
+\setlength{\hintscolumnwidth}{3.2cm}
+\linespread{1.08}
+
+% More breathing room: larger default gaps after entries and around section headings.
+\usepackage{letltxmacro}
+\LetLtxMacro{\origcvitem}{\cvitem}
+\LetLtxMacro{\origcventry}{\cventry}
+\renewcommand*{\cvitem}[3][.6em]{\origcvitem[#1]{#2}{#3}}
+\renewcommand*{\cventry}[7][1em]{\origcventry[#1]{#2}{#3}{#4}{#5}{#6}{#7}}
+\makeatletter
+\RenewDocumentCommand{\section}{sm}{%
+  \par\addvspace{4ex}%
+  \phantomsection{}%
+  \addcontentsline{toc}{section}{#2}%
+  \cvitem[0ex]{\strut\raggedleft\raisebox{\baseletterheight}{\color{color1}\rule{\hintscolumnwidth}{0.95ex}}}{\strut\sectionstyle{#2}}%
+  \par\nobreak\addvspace{1.6ex}\@afterheading}
+\makeatother
 
 \name{\textcolor{gray!65}{Alejandro}}{de la Fuente}
 \title{Curriculum Vitae}
@@ -30,16 +46,15 @@ PhD researcher at the Barcelona Supercomputing Center (BSC) and the University o
 \cventry{Feb 2022--May 2022}{Internship}{Economic and Social Council of Castilla y León (CES)}{Valladolid, Spain}{}{Preparation of economic and social reports on regional economic conditions.}
 
 \section{Publications and working papers}
+\cvitem{Accepted}{\textbf{From Browsing to Prompting: How AI Challenges Web Tracking Data}. \emph{Discover Data}, forthcoming.}
 \cvitem{Preprint}{\textbf{Beyond the Link: Assessing LLMs' Ability to Classify Political Content across Global Media}. With A.~Martinez-Serra, N.~Visscher, L.~Castro and A.~S.~Cardenal. \url{https://arxiv.org/abs/2506.17435}}
 \cvitem{Working paper}{\textbf{Who Reads What---and How Fast? Partisan Asymmetries in Political News Consumption}.}
 \cvitem{Working paper}{\textbf{Pathways to Polarization: Online Information-Seeking Among Political Extremists}. With L.~Castro, Y.~Zhang, F.~Esser, K.~Syed Ali and M.~Amsler.}
-\cvitem{Working paper}{\textbf{Bridging the Self-Report Gap: Behavioural Measures of Partisan News Consumption}.}
-\cvitem{Working paper}{\textbf{Leveraging Large Language Models to Enhance Supervised Classification of Political Incivility on Social Media}.}
+\cvitem{Working paper}{\textbf{Bridging the Self-Report Gap: Behavioural Measures of Partisan News Consumption}. With N.~Visscher, M.~García Ortiz and L.~Castro.}
+\cvitem{Working paper}{\textbf{Leveraging Large Language Models to Enhance Supervised Classification of Political Incivility on Social Media}. With L.~Castro, M.~García Ortiz, I.~Camacho, A.~Casadevall and P.~Szewach.}
 \cvitem{Working paper}{\textbf{What Counts as AI Use? Comparing Self-Reports and Digital Traces in a Spanish Online Panel}. With A.~Martinez-Serra, J.~C.~Niculica, A.~Rodilla and A.~S.~Cardenal.}
-\cvitem{Working paper}{\textbf{The Collective Turing Test Revisited: Can Humanized Multi-Agent Systems Simulate Online Political Discussion?}.}
-\cvitem{Working paper}{\textbf{What the Platform Leaves Behind: Iron March's Shutdown and Hate Crime in U.S.\ Counties}.}
-\cvitem{Working paper}{\textbf{Broadband Availability and Turnout Change in Spain's 2016 Repeat Election}.}
-\cvitem{Working paper}{\textbf{From Browsing to Prompting: How AI Challenges Web Tracking Data}.}
+\cvitem{Working paper}{\textbf{Can Humanized Multi-Agent Systems Simulate Online Political Discussion? Evidence from a Collective Turing Test}. With L.~Castro, M.~García Ortiz, A.~Casadevall, R.~Kiddle, P.~Szewach and A.~Casas.}
+\cvitem{Working paper}{\textbf{What the Platform Leaves Behind: Iron March's Shutdown and Hate Crime in U.S.\ Counties}. With M.~Pellert.}
 
 \section{Conference presentations}
 \cvitem{2026}{BSC Workshop on AI/ML Applied Methods in Computational Social Sciences and Humanities Research, Barcelona: \emph{Who Reads What---and How Fast?}}
