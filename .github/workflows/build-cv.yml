@@ -1,0 +1,31 @@
+name: Build CV PDF
+on:
+  push:
+    paths:
+      - 'cv/cv.tex'
+      - 'img/photo.jpg'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install LaTeX
+        run: sudo apt-get update && sudo apt-get install -y texlive-xetex texlive-latex-extra texlive-fonts-recommended
+      - name: Compile CV
+        working-directory: cv
+        run: |
+          xelatex -halt-on-error -interaction=nonstopmode cv.tex
+          xelatex -halt-on-error -interaction=nonstopmode cv.tex
+          mv cv.pdf de_la_Fuente-Cuesta_CV.pdf
+      - name: Commit generated PDF
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add cv/de_la_Fuente-Cuesta_CV.pdf
+          if ! git diff --cached --quiet; then
+            git commit -m 'Rebuild CV PDF'
+            git push
+          fi
